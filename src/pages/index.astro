@@ -11,7 +11,7 @@ import MainLayout from "../layouts/main.astro";
       <img src="https://iili.io/Ju3wiVn.md.jpg" />
       <div class="card-info">
         <p>$23.50</p>
-        <button>comprar</button>
+        <button class="acn">comprar</button>
       </div>
     </div>
     <div class="card">
@@ -118,6 +118,7 @@ import MainLayout from "../layouts/main.astro";
   ];
 
   let btns = [...document.getElementsByClassName("acn")];
+  console.log("🚀 ~ file: index.astro:121 ~ btns:", btns);
 
   for (let [idx, btn] of btns.entries()) {
     btn.addEventListener("click", async function () {
@@ -132,31 +133,35 @@ import MainLayout from "../layouts/main.astro";
             quantity: 1,
           },
         ],
-        successUrl: `${window.location.href}/success`,
+        successUrl: `${window.location.href}success`,
         cancelUrl: window.location.href,
       };
+      try {
+        const res = await fetch(
+          "https://api-pay.h4b.dev/api/paymentlink/checkout",
+          {
+            method: "POST",
+            headers: {
+              Authorization:
+                "Bearer sk_be601c81b8aef5ee8a252082381330d34a8e5cc69a04f031c2ac6d5a5f1604f7",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+            redirect: "manual",
+          }
+        );
+        const jsonres = await res.json();
 
-      const res = await fetch(
-        "https://api-pay.h4b.dev/api/paymentlink/checkout?redirect=false",
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Bearer sk_be601c81b8aef5ee8a252082381330d34a8e5cc69a04f031c2ac6d5a5f1604f7",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+        if (jsonres.paymentLinkUrl) {
+          document.getElementById("loader").style.display = "none";
+          document
+            .getElementById("redd")
+            .addEventListener("click", function () {
+              location.replace(jsonres.paymentLinkUrl);
+            });
         }
-      );
-      const jsonres = await res.json();
-
-      if (jsonres.paymentLinkUrl) {
-        console.log("🚀 ~ file: index.astro:247 ~ jsonres:", jsonres);
-
-        document.getElementById("loader").style.display = "none";
-        document.getElementById("redd").addEventListener("click", function () {
-          location.replace(jsonres.paymentLinkUrl);
-        });
+      } catch (error) {
+        console.error(error);
       }
     });
   }
