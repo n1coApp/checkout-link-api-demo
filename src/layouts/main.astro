@@ -1,5 +1,7 @@
 ---
 import "@fontsource/dm-sans";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 ---
 
 <html lang="en">
@@ -8,9 +10,32 @@ import "@fontsource/dm-sans";
     <meta name="viewport" content="width=device-width" />
     <title>n1co playground</title>
   </head>
-  <body class="m-0 relative">
-    <main>
+  <body class="bg-blue-50 p-16 min-h-screen flex relative">
+    <main
+      id="content"
+      class="p-8 bg-white rounded-md flex flex-col m-auto w-full max-w-3xl"
+    >
       <slot />
     </main>
+    <ToastContainer
+      className="rounded-md"
+      autoClose={5000}
+      closeButton={false}
+      client:load
+    />
   </body>
 </html>
+
+<style is:global>
+  :root {
+    --toastify-toast-width: 200px;
+    --toastify-icon-color-error: white;
+  }
+  * {
+    box-sizing: border-box;
+  }
+
+  .Toastify__toast-theme--light.Toastify__toast--error {
+    @apply text-white;
+  }
+</style>

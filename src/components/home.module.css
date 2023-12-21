@@ -1,0 +1,29 @@
+.loadingBtn {
+  @apply relative overflow-hidden cursor-wait;
+}
+
+.loadingBtn::after {
+  @apply absolute top-2/4 left-2/4 border-4 border-solid border-gray-500
+    border-t-white box-border;
+  content: "";
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform-origin: 50% 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+}
+
+.loadingBtn::before {
+  @apply absolute inset-0 bg-gray-800;
+  content: "";
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

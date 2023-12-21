@@ -1,13 +1,28 @@
 ---
+import { Icon } from "astro-icon";
 import MainLayout from "../layouts/main.astro";
+import CartItem from "../components/CartItem";
+import SuccessPage from "../components/Success";
+
+const orderCode = Astro.url.searchParams.get("order_code") || "";
+console.log("🚀 ~ file: success.astro:8 ~ orderCode:", orderCode);
+let order = null;
+
+if (orderCode) {
+  const response = await fetch(
+    `${import.meta.env.PUBLIC_API_URL}/order/${orderCode}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${import.meta.env.PUBLIC_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  order = await response.json();
+}
 ---
 
 <MainLayout>
-  <div
-    class="w-screen h-screen flex flex-col items-center justify-center gap-4"
-  >
-    <h1 class="font-bold leading-loose text-2xl">N1CO</h1>
-    <img src="https://i.giphy.com/z84Q2PRklAbL2.webp" />
-    <h2 class="text-4xl">Compra exitosa.</h2>
-  </div>
+  <SuccessPage order={order} client:load />
 </MainLayout>

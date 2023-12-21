@@ -1,0 +1,14 @@
+[
+  {
+    "label": "normal",
+    "value": 1
+  },
+  {
+    "label": "ventana",
+    "value": 2
+  },
+  {
+    "label": "iframe",
+    "value": 3
+  }
+]
