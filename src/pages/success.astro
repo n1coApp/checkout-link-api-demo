@@ -5,7 +5,6 @@ import CartItem from "../components/CartItem";
 import SuccessPage from "../components/Success";
 
 const orderCode = Astro.url.searchParams.get("order_code") || "";
-console.log("🚀 ~ file: success.astro:8 ~ orderCode:", orderCode);
 let order = null;
 
 if (orderCode) {
