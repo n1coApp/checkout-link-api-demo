@@ -49,7 +49,7 @@ const Home = () => {
         // TODO: update this when client-link gets updated
         const devUrl = jsonres.paymentLinkUrl.replace(
           'https://pay.h4b.dev',
-          'http://localhost:3000'
+          'https://mango-pebble-0a392a510-163.centralus.azurestaticapps.net'
         )
 
         setLoading(false)
@@ -126,7 +126,6 @@ const Home = () => {
           }
           // iframe method
           case checkoutOpts[2].value: {
-            console.log('iframe', iframeRef);
             window.addEventListener(
               'message',
               (event) => {
