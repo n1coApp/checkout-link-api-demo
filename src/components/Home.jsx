@@ -15,9 +15,19 @@ const Home = () => {
   const [selectedCheckoutOpt, setSelectedCheckoutOpt] = useState(checkoutOpts.at(0)?.value)
   const [loading, setLoading] = useState(false)
   const [iframeSrc, setIframeSrc] = useState('')
+  const [activeTab, setActiveTab] = useState(1)
+  const [inputValue, setInputValue] = useState('')
+
+  const subTotal = activeTab ? inputValue : cartItems.reduce((prev, { price }) => prev + price, 0)
 
   const handleSelectChange = (ev) => {
     setSelectedCheckoutOpt(ev.target.value)
+  }
+
+  const handleInputChange = (ev) => {
+   if(/\d/g.test(+ev.target.value)) {
+    setInputValue(ev.target.value)
+   }
   }
 
   // we create the link in this request
@@ -25,12 +35,19 @@ const Home = () => {
     const body = {
       orderName: `my-store-order-${Math.floor(Math.random() * 1000) + 1}`,
       orderDescription: 'generado desde un tostador inteligente',
-      lineItems: cartItems.map((item) => ({
-        product: item,
-        quantity: item.quantity,
-      })),
       successUrl: `${window.location.href}success`,
       cancelUrl: window.location.href,
+    }
+
+    if (activeTab === 0) {
+      body.lineItems = cartItems.map((item) => ({
+        product: item,
+        quantity: item.quantity,
+      }))
+    }
+
+    if (activeTab === 1) {
+      body.amount = +inputValue
     }
 
     try {
@@ -194,22 +211,58 @@ const Home = () => {
 
   return (
     <>
-      <div>
-        <h1 className="font-bold text-4xl mb-4">Carrito</h1>
-        <p className="opacity-40 text-sm">Codigo ejemplo de link de integraciones</p>
-        <div className="flex flex-col gap-8 my-4">
-          {
-            cartItems.map(({ imageUrl, name, price, quantity }) => (
-              <CartItem
-                key={name}
-                imageUrl={imageUrl}
-                name={name}
-                price={price}
-                quantity={quantity}
-              />
-            ))
-          }
+      <div className="tabs mb-4 flex gap-4">
+        <span
+          className={cn(
+            `border border-black p-2 rounded-md cursor-pointer hover:bg-black/40
+              transition-all ease-in-out`,
+            { 'bg-black text-white': activeTab === 0 }
+          )}
+          onClick={() => setActiveTab(0)}
+        >
+          Carrito
+        </span>
+        <span
+          className={cn(
+            `border border-black p-2 rounded-md cursor-pointer hover:bg-black/40
+              transition-all ease-in-out`,
+            { 'bg-black text-white': activeTab === 1 }
+          )}
+          onClick={() => setActiveTab(1)}
+        >
+          Monto
+        </span>
+      </div>
+      {activeTab === 0 && (
+        <div>
+          <h1 className="font-bold text-4xl mb-4">Carrito</h1>
+          <p className="opacity-40 text-sm">Codigo ejemplo de link de integraciones</p>
+          <div className="flex flex-col gap-8 my-4">
+            {
+              cartItems.map(({ imageUrl, name, price, quantity }) => (
+                <CartItem
+                  key={name}
+                  imageUrl={imageUrl}
+                  name={name}
+                  price={price}
+                  quantity={quantity}
+                />
+              ))
+            }
+          </div>
         </div>
+      )}
+      {activeTab === 1 && (
+        <div className="px-4 py-16 flex items-center justify-center">
+          <input
+            className="border border-black p-2 focus:outline-none rounded-md"
+            placeholder="9.99"
+            value={inputValue}
+            onChange={handleInputChange}
+          />
+        </div>
+      )}
+      <div className="footer">
         <div
           className={`
             bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white
@@ -223,7 +276,7 @@ const Home = () => {
             </p>
           </div>
           <p className="ml-auto flex items-center font-bold">
-            ${cartItems.reduce((prev, { price }) => prev + price, 0)}
+            ${subTotal || 0}
           </p>
         </div>
         <div className="ml-auto flex gap-4 items-center justify-end mt-8">

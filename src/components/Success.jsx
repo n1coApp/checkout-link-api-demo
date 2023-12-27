@@ -5,6 +5,7 @@ import CartItem from './CartItem'
 import { checkoutData } from '../store'
 
 const Success = ({ order = null }) => {
+  console.log("🚀 ~ file: Success.jsx:8 ~ Success ~ order:", order)
   const $checkoutData = useStore(checkoutData)
 
   const eventData = useMemo(() => {
@@ -46,22 +47,26 @@ const Success = ({ order = null }) => {
         </svg>
       </div>
       <div className="mt-16">
-        {/* <h2>Creada: {new Date(data.created ??).toISOString().substring(0, 10)}</h2> */}
+        <h2>Creada: {new Date(data.created).toISOString().substring(0, 10)}</h2>
         <h2>Estado de tu orden: {data?.orderStatus}</h2>
+        <h2 className="font-bold">Total: ${data.total}</h2>
       </div>
-      <div className="flex flex-col gap-4 mt-8">
-        {
-          data?.lineItems?.map(({ imageUrl, name, price, quantity }) => (
-            <CartItem
-              key={name}
-              imageUrl={imageUrl}
-              name={name}
-              price={price}
-              quantity={quantity}
-            />
-          ))
-        }
-      </div>
+      {!!data?.lineItems.length && (
+        <div className="flex flex-col gap-4 mt-8">
+          {
+            data?.lineItems?.map(({ imageUrl, name, price, quantity }) => (
+              <CartItem
+                key={name}
+                imageUrl={imageUrl}
+                name={name}
+                price={price}
+                quantity={quantity}
+              />
+            ))
+          }
+        </div>
+      )}
+
     </div>
   )
 }
