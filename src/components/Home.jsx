@@ -9,13 +9,19 @@ import CartItem from './CartItem.jsx'
 import { isWindowOpen, checkoutData, isIframeOpen } from '../store'
 import { Iframe } from './Iframe.jsx'
 
+import handleCheckoutItems from '../examples/handleCheckoutItems'
+import handleCheckoutAmount from '../examples/handleCheckoutAmount'
+import redirectExample from '../examples/redirectExample'
+import windowExample from '../examples/windowExample'
+import iframeExample from '../examples/iframeExample'
+
 const Home = () => {
   const externalWindow = useRef(null)
   const iframeRef = useRef(null)
   const [selectedCheckoutOpt, setSelectedCheckoutOpt] = useState(checkoutOpts.at(0)?.value)
   const [loading, setLoading] = useState(false)
   const [iframeSrc, setIframeSrc] = useState('')
-  const [activeTab, setActiveTab] = useState(1)
+  const [activeTab, setActiveTab] = useState(0)
   const [inputValue, setInputValue] = useState('')
 
   const subTotal = activeTab ? inputValue : cartItems.reduce((prev, { price }) => prev + price, 0)
@@ -30,182 +36,80 @@ const Home = () => {
    }
   }
 
+  const handleWindowCancel = () => {
+    externalWindow.current.close()
+    isWindowOpen.set(false)
+
+    toast.error('Pago cancelado.', {
+      style: {
+        background:
+          'linear-gradient(148deg, rgba(225,29,72,1) 0%, rgba(251,113,133,1) 100%)',
+        borderRadius: '8px',
+      },
+    })
+  }
+
+  const handleWindowSuccess = ({ data, url }) => {
+    externalWindow.current.close()
+    isWindowOpen.set(false)
+    checkoutData.set(data)
+    window.location.assign(url)
+  }
+
+  const handleIframeCancel = () => {
+    setIframeSrc('')
+    isIframeOpen.set(false)
+
+    toast.error('Pago cancelado :(', {
+      style: {
+        background:
+          'linear-gradient(148deg, rgba(225,29,72,1) 0%, rgba(251,113,133,1) 100%)',
+        borderRadius: '8px',
+      },
+    })
+  }
+
+  const handleIframeSuccess = ({ data, url }) => {
+    setIframeSrc('')
+    isIframeOpen.set(false)
+    checkoutData.set(data)
+    window.location.assign(url)
+  }
+
   // we create the link in this request
   const handleCheckout = async () => {
-    const body = {
-      orderName: `my-store-order-${Math.floor(Math.random() * 1000) + 1}`,
-      orderDescription: 'generado desde un tostador inteligente',
-      successUrl: `${window.location.href}success`,
-      cancelUrl: window.location.href,
-    }
-
-    if (activeTab === 0) {
-      body.lineItems = cartItems.map((item) => ({
-        product: item,
-        quantity: item.quantity,
-      }))
-    }
-
-    if (activeTab === 1) {
-      body.amount = +inputValue
-    }
-
     try {
       setLoading(true)
-      const res = await fetch(`${import.meta.env.PUBLIC_API_URL}/checkout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${import.meta.env.PUBLIC_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-      const jsonres = await res.json()
+      let url = ''
 
-      if (jsonres.paymentLinkUrl) {
-        // TODO: update this when client-link gets updated
-        const devUrl = jsonres.paymentLinkUrl.replace(
-          'https://pay.h4b.dev',
-          'https://mango-pebble-0a392a510-163.centralus.azurestaticapps.net'
-        )
+      if (activeTab) {
+        // handle amount link example
+        url = await handleCheckoutAmount(+inputValue)
+      } else {
+        // handle lineItems link example
+        url = await handleCheckoutItems()
+      }
 
-        setLoading(false)
-
-        // examples of supported implementations
-        switch (Number(selectedCheckoutOpt)) {
-          // the default redirect method
-          case checkoutOpts[0].value: {
-            window.location.assign(jsonres.paymentLinkUrl)
-            break
-          }
-          // window popup method
-          case checkoutOpts[1].value: {
-            isWindowOpen.set(true)
-
-            window.addEventListener(
-              'message',
-              (event) => {         
-                console.log("🚀 ~ file: Home.jsx:126 ~ handleCheckout ~ event:", event)       
-                if (event.data.type === 'link-api-connection') {
-                  if (event.data?.payload?.loaded) {
-                    externalWindow?.current.postMessage(
-                      {
-                        type: 'link-api-connection',
-                        payload: {
-                          connection: true,
-                          origin: window.location.href,
-                        },
-                      },
-                      '*'
-                    )
-                    console.log('event connection established')
-                  }
-  
-                  if (event.data?.payload?.cancel) {
-                    externalWindow.current.close()
-                    isWindowOpen.set(false)
-  
-                    toast.error('Pago cancelado :(', {
-                      style: {
-                        background:
-                          'linear-gradient(148deg, rgba(225,29,72,1) 0%, rgba(251,113,133,1) 100%)',
-                        borderRadius: '8px',
-                      },
-                    })
-                  }
-
-                  if (event.data?.payload?.paidSuccess) {
-                    externalWindow.current.close()
-                    isWindowOpen.set(false)
-                    checkoutData.set(event.data?.payload?.data)
-                    window.location.assign(event.data?.payload?.data.order.successUrl)
-                  }
-                }
-              },
-              false
-            )
-
-            externalWindow.current = window.open(
-              devUrl,
-              '_blank',
-              'height=600,width=400'
-            )
-
-            setTimeout(() => {
-              externalWindow.current?.postMessage({ 
-                type: 'link-api-connection',
-                payload: {
-                  connection: true
-                }
-               }, '*')
-            }, 2000);
-            break
-          }
-          // iframe method
-          case checkoutOpts[2].value: {
-            window.addEventListener(
-              'message',
-              (event) => {
-                console.log("🚀 ~ file: Home.jsx:186 ~ handleCheckout ~ event:", event)
-                if (event.data.type === 'link-api-connection') {
-                  if (event.data?.payload?.loaded) {
-                    iframeRef?.current.contentWindow.postMessage(
-                      {
-                        type: 'link-api-connection',
-                        payload: {
-                          connection: true,
-                          origin: window.location.href,
-                        },
-                      },
-                      '*'
-                    )
-                    console.log('event connection established')
-                  }
-  
-                  if (event.data?.payload?.cancel) {
-                    setIframeSrc('')
-                    isIframeOpen.set(false)
-  
-                    toast.error('Pago cancelado :(', {
-                      style: {
-                        background:
-                          'linear-gradient(148deg, rgba(225,29,72,1) 0%, rgba(251,113,133,1) 100%)',
-                        borderRadius: '8px',
-                      },
-                    })
-                  }
-
-                  if (event.data?.payload?.paidSuccess) {
-                    setIframeSrc('')
-                    isIframeOpen.set(false)
-                    checkoutData.set(event.data?.payload?.data)
-                    window.location.assign(event.data?.payload?.data.order.successUrl)
-                  }
-                }
-              },
-              false
-            )
-
-            setIframeSrc(devUrl)
-            isIframeOpen.set(true)
-
-            setTimeout(() => {
-              iframeRef.current?.contentWindow.postMessage({ 
-                type: 'link-api-connection',
-                payload: {
-                  connection: true
-                }
-               }, '*')
-            }, 2000);
-            break
-          }
-          default:
-            break
+      if (url) {
+        // default redirect method
+        if (+selectedCheckoutOpt === 1) {
+          redirectExample(url)
+        }
+        // window popup method
+        if (+selectedCheckoutOpt === 2) {
+          isWindowOpen.set(true)
+          windowExample(externalWindow, handleWindowSuccess, handleWindowCancel)
+        }
+        // iframe method
+        if (+selectedCheckoutOpt === 3) {
+          setIframeSrc(devUrl)
+          isIframeOpen.set(true)
+          iframeExample(iframeRef, handleIframeCancel, handleIframeSuccess)
         }
       }
-    } catch (error) {
-      toast.error(`Error: ${error.message}`)
-      console.error(`Error: ${error.message}`)
+
+    } catch(e) {
+      toast.error(`Error: ${e}`)
     }
   }
 
