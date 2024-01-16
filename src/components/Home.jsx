@@ -98,11 +98,18 @@ const Home = () => {
         // window popup method
         if (+selectedCheckoutOpt === 2) {
           isWindowOpen.set(true)
-          windowExample(externalWindow, handleWindowSuccess, handleWindowCancel)
+          // we open a new window with the url from the request
+          externalWindow.current = window.open(
+            url,
+            '_blank',
+            'height=600,width=400'
+          )
+          windowExample(externalWindow, handleWindowSuccess, handleWindowCancel, url)
         }
         // iframe method
         if (+selectedCheckoutOpt === 3) {
-          setIframeSrc(devUrl)
+          setIframeSrc(url)
+          // we create a new iframe with the url from the request
           isIframeOpen.set(true)
           iframeExample(iframeRef, handleIframeCancel, handleIframeSuccess)
         }

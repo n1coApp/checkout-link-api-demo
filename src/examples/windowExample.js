@@ -1,4 +1,4 @@
-export default function(externalWindow, handleSuccess, handleCancel) {
+export default function(externalWindow, handleSuccess, handleCancel, url) {
   window.addEventListener(
     'message',
     (event) => {   
@@ -32,13 +32,6 @@ export default function(externalWindow, handleSuccess, handleCancel) {
       }
     },
     false
-  )
-
-  // we open a new window with the url from the request
-  externalWindow.current = window.open(
-    devUrl,
-    '_blank',
-    'height=600,width=400'
   )
 
   // we send an event to verify the connection
