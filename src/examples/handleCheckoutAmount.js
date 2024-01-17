@@ -22,7 +22,7 @@ export default async function handleCheckoutAmount(amount) {
       const jsonres = await res.json()
 
       if (jsonres.paymentLinkUrl) {
-        return devUrl
+        return jsonres.paymentLinkUrl
       } else {
         throw new Error({ message: 'Request failed succesfully.' })
       }
