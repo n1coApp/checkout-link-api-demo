@@ -91,6 +91,7 @@ const Home = () => {
       }
 
       if (url) {
+        setLoading(false)
         // default redirect method
         if (+selectedCheckoutOpt === 1) {
           redirectExample(url)
